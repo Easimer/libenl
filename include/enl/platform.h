@@ -17,7 +17,11 @@
 #endif
 
 #if defined(PLAT_WINDOWS)
+#if defined(ENL_LIBRARY)
 #define ENL_EXPORT __declspec(dllexport)
+#else
+#define ENL_EXPORT __declspec(dllimport)
+#endif
 #else
 #define ENL_EXPORT
 #endif

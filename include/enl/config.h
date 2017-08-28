@@ -14,7 +14,7 @@ private:
 	std::map<std::string, std::string> m_map;
 };
 
-extern CConfig* gpConfig;
+ENL_EXPORT extern CConfig* gpConfig;
 
 #define CONFIG_INIT() gpConfig = new CConfig();
 #define CONFIG_SHUTDOWN() delete gpConfig;

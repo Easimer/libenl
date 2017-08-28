@@ -26,7 +26,7 @@ private:
 	std::vector<cmdline_arg> m_args;
 };
 
-extern CCommandLine* gpCmdline;
+ENL_EXPORT extern CCommandLine* gpCmdline;
 
 #define CMDLINE_INIT() gpCmdline = new CCommandLine(argc, argv);
 #define CMDLINE_SHUTDOWN() delete gpCmdline;
