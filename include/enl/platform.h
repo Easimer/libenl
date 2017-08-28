@@ -12,6 +12,10 @@
 #define PLAT_HTML5
 #endif
 
+#if defined(__APPLE__) && defined(__MACH__)
+#define PLAT_OSX
+#endif
+
 #if defined(_DEBUG) || defined(DEBUG) || defined(NDEBUG)
 #define PLAT_DEBUG
 #endif
