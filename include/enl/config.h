@@ -1,9 +1,10 @@
 #pragma once
 
+#include <enl/platform.h>
 #include <string>
 #include <map>
 
-class CConfig
+class EXPORT CConfig
 {
 public:
 	void Load(const char* szPath = "config.conf");

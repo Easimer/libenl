@@ -15,3 +15,9 @@
 #if defined(_DEBUG) || defined(DEBUG) || defined(NDEBUG)
 #define PLAT_DEBUG
 #endif
+
+#if defined(PLAT_WINDOWS)
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif

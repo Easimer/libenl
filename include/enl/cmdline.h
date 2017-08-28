@@ -1,5 +1,6 @@
 #pragma once
 
+#include <enl/platform.h>
 #include <vector>
 #include <string>
 
@@ -8,7 +9,7 @@ typedef struct cmdline_arg {
 	const char* szArg;
 } cmdline_arg;
 
-class CCommandLine
+class EXPORT CCommandLine
 {
 public:
 	CCommandLine(int argc, char** argv);

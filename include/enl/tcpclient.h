@@ -14,7 +14,7 @@ typedef int socket_t;
 #define NETWORK_SHUTDOWN()
 #endif
 
-class CTCPClient
+class EXPORT CTCPClient
 {
 public:
 	CTCPClient(std::string& addr, unsigned short iPort);
