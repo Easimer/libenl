@@ -9,14 +9,14 @@ typedef struct cmdline_arg {
 	const char* szArg;
 } cmdline_arg;
 
-class EXPORT CCommandLine
+class CCommandLine
 {
 public:
-	CCommandLine(int argc, char** argv);
+	ENL_EXPORT CCommandLine(int argc, char** argv);
 
-	bool IsFlagPresent(char chFlag);
-	const char* GetArgument(char chFlag = '\0');
-	const char* GetExecName();
+	ENL_EXPORT bool IsFlagPresent(char chFlag);
+	ENL_EXPORT const char* GetArgument(char chFlag = '\0');
+	ENL_EXPORT const char* GetExecName();
 
 private:
 	void PushArgument(char chFlag, const char* szValue);

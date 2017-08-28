@@ -14,17 +14,17 @@ typedef int socket_t;
 #define NETWORK_SHUTDOWN()
 #endif
 
-class EXPORT CTCPClient
+class CTCPClient
 {
 public:
-	CTCPClient(std::string& addr, unsigned short iPort);
-	~CTCPClient();
+	ENL_EXPORT CTCPClient(std::string& addr, unsigned short iPort);
+	ENL_EXPORT ~CTCPClient();
 
-	CTCPClient(const CTCPClient& other) = delete;
-	CTCPClient& operator=(const CTCPClient& other) = delete;
+	ENL_EXPORT CTCPClient(const CTCPClient& other) = delete;
+	ENL_EXPORT CTCPClient& operator=(const CTCPClient& other) = delete;
 
-	size_t Read(unsigned char* pBuf, size_t nBufSiz);
-	size_t Write(const unsigned char* pBuf, size_t nBufSiz);
+	ENL_EXPORT size_t Read(unsigned char* pBuf, size_t nBufSiz);
+	ENL_EXPORT size_t Write(const unsigned char* pBuf, size_t nBufSiz);
 
 protected:
 	socket_t OpenSocket(std::string& addr, unsigned short iPort);

@@ -4,11 +4,11 @@
 #include <string>
 #include <map>
 
-class EXPORT CConfig
+class CConfig
 {
 public:
-	void Load(const char* szPath = "config.conf");
-	const char* GetValue(const char* szKey);
+	ENL_EXPORT void Load(const char* szPath = "config.conf");
+	ENL_EXPORT const char* GetValue(const char* szKey);
 
 private:
 	std::map<std::string, std::string> m_map;
