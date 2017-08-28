@@ -11,4 +11,4 @@ add_library(enl SHARED ${src_stdlib} ${src_utils})
 install(TARGETS enl DESTINATION lib/)
 
 file(GLOB include_headers include/enl/*.h)
-install(FILES ${include_headers} DESTINATION include/${PROJECT_NAME})
+install(FILES ${include_headers} DESTINATION include/enl/)
