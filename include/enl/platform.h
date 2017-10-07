@@ -45,3 +45,14 @@
 #else
 #define ENL_EXPORT
 #endif
+
+// Platform specific packing
+#if defined(PLAT_WINDOWS)
+#define START_PACK __pragma( pack(push, 1) )
+#define END_PACK __pragma( pack(pop) )
+#define PACKED
+#elif defined(PLAT_LINUX)
+#define START_PACK
+#define END_PACK
+#define PACKED __attribute__((packed))
+#endif
