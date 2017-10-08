@@ -54,6 +54,7 @@
 // utilities like gzip or xz.
 
 #define IDENLZIP	(('P' << 24) + ('I' << 16) + ('Z' << 8) + 'E')
+#define ENLZIP_VERSION	1
 
 // Archive flags
 // The archived is closed, adding further data and file entry is
@@ -72,7 +73,7 @@ struct ezip_header {
 	uint32_t reserved4;
 	uint32_t reserved3;
 	uint32_t reserved2;
-	uint32_t reserved1;
+	uint32_t nVersion;
 
 	uint32_t iFlags;
 	uint32_t nOTPLen; // OTP table length (bytes)

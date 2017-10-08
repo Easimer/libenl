@@ -63,13 +63,13 @@ void enlzip_writer::close()
 		hentry.nDataSize = req.nSize;
 		hentry.iFlags = 0;
 #if defined(PLAT_LINUX)
-                hentry.iOwnerUser = 0;
-                hentry.iOwnerGroup = 0;
-                hentry.nPermissions = 0;
+		hentry.iOwnerUser = 0;
+		hentry.iOwnerGroup = 0;
+		hentry.nPermissions = 0;
 #else
-                hentry.iOwnerUser = 0;
-                hentry.iOwnerGroup = 0;
-                hentry.nPermissions = 0;
+		hentry.iOwnerUser = 0;
+		hentry.iOwnerGroup = 0;
+		hentry.nPermissions = 0;
 #endif
 
 		m_file.write((const char*)&hentry, sizeof(ezip_hentry));
@@ -89,6 +89,7 @@ void enlzip_writer::close()
 	hdr.iID = IDENLZIP;
 	hdr.nHTableLen = nHTableLen;
 	hdr.nOTPLen = nOTPLen;
+	hdr.nVersion = ENLZIP_VERSION;
 
 	m_file.write((const char*)&hdr, sizeof(hdr));
 
@@ -114,6 +115,10 @@ enlzip_reader::enlzip_reader(const char* szFilename)
 	if(header.iID != IDENLZIP)
 	{
 		throw std::runtime_error("bad signature");
+	}
+	if(header.nVersion != ENLZIP_VERSION)
+	{
+		throw std::runtime_error("bad version");
 	}
 	std::cout << "HTable length: " << header.nHTableLen << std::endl;
 	std::cout << "OTP length: " << header.nOTPLen << std::endl;
