@@ -31,12 +31,17 @@ enlzip_writer::~enlzip_writer()
 
 ssize_t enlzip_writer::write(const char* szFilename, const char* pData, size_t nLength)
 {
+    return write(szFilename, pData, nLength, 0, 0, 644);
+}
+
+ssize_t enlzip_writer::write(const char* szFilename, const char* pData, size_t nLength, uint32_t iOwnerUser, uint32_t iOwnerGroup, uint32_t nPermissions)
+{
 	size_t iPos = m_file.tellp();
 	size_t iNewPos = ((iPos + 511) & -512);
 	std::cout << "Current cur: " << iPos << " new pos: " << iNewPos << std::endl;
 	m_file.seekp(iNewPos);
 	m_file.write(pData, nLength);
-	m_reqs.push_back({m_hash.get_hash(szFilename), iNewPos, nLength});
+	m_reqs.push_back({m_hash.get_hash(szFilename), iNewPos, nLength, iOwnerUser, iOwnerGroup, nPermissions});
 	return nLength;
 }
 
@@ -57,6 +62,15 @@ void enlzip_writer::close()
 		hentry.nDataOffset = req.nOffset;
 		hentry.nDataSize = req.nSize;
 		hentry.iFlags = 0;
+#if defined(PLAT_LINUX)
+                hentry.iOwnerUser = 0;
+                hentry.iOwnerGroup = 0;
+                hentry.nPermissions = 0;
+#else
+                hentry.iOwnerUser = 0;
+                hentry.iOwnerGroup = 0;
+                hentry.nPermissions = 0;
+#endif
 
 		m_file.write((const char*)&hentry, sizeof(ezip_hentry));
 		nHTableLen++;
@@ -157,3 +171,26 @@ ssize_t enlzip_reader::read(uint32_t pFile, uint8_t* pDst)
 	return nDataSize;
 }
 
+uint32_t enlzip_reader::owner_user(uint32_t pFile)
+{
+	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	ezip_hentry hentry;
+	m_file.read((char*)&hentry, sizeof(hentry));
+	return hentry.iOwnerUser;
+}
+
+uint32_t enlzip_reader::owner_group(uint32_t pFile)
+{
+	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	ezip_hentry hentry;
+	m_file.read((char*)&hentry, sizeof(hentry));
+	return hentry.iOwnerGroup;
+}
+
+uint32_t enlzip_reader::permissions(uint32_t pFile)
+{
+	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	ezip_hentry hentry;
+	m_file.read((char*)&hentry, sizeof(hentry));
+	return hentry.nPermissions;
+}

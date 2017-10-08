@@ -91,6 +91,9 @@ struct ezip_hentry {
 	uint32_t nDataOffset; // MUST be aligned on 512 byte boundary
 	uint32_t nDataSize;
 	uint32_t iFlags; // see ENLZIP_F_ defines
+	uint32_t iOwnerUser;
+	uint32_t iOwnerGroup;
+	uint32_t nPermissions;
 } PACKED;
 END_PACK
 
@@ -98,6 +101,9 @@ struct enlzip_write_request {
 	uint32_t nHash;
 	size_t nOffset;
 	size_t nSize;
+	uint32_t iOwnerUser;
+	uint32_t iOwnerGroup;
+	uint32_t nPermissions;
 };
 
 typedef struct enlzip_write_request enlzip_file;
@@ -108,6 +114,7 @@ public:
 	~enlzip_writer();
 
 	ssize_t write(const char* szPath, const char* pData, size_t nLength);
+	ssize_t write(const char* szFilename, const char* pData, size_t nLength, uint32_t iOwnerUser, uint32_t iOwnerGroup, uint32_t nPermissions);
 
 	void close();
 
@@ -126,6 +133,10 @@ public:
 	uint32_t open(const char* szPath);
 	size_t size(uint32_t pFile);
 	ssize_t read(uint32_t pFile, uint8_t* pDst);
+
+	uint32_t owner_user(uint32_t pFile);
+	uint32_t owner_group(uint32_t pFile);
+	uint32_t permissions(uint32_t pFile);
 
 private:
 	std::ifstream m_file;
