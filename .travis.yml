@@ -3,7 +3,7 @@ dist: xenial
 
 before_install:
  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
- - sudo add-apt-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main"
+ - sudo add-apt-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main"
  - sudo apt update
  - sudo apt install clang-5.0 clang-5.0-doc libclang-common-5.0-dev libclang-5.0-dev libclang1-5.0 libclang1-5.0-dbg libllvm-5.0-ocaml-dev libllvm5.0 libllvm5.0-dbg lldb-5.0 llvm-5.0 llvm-5.0-dev llvm-5.0-doc llvm-5.0-examples llvm-5.0-runtime clang-format-5.0 python-clang-5.0 lldb-5.0-dev lld-5.0 libfuzzer-5.0-dev
  - sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang-5.0
