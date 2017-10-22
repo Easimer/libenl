@@ -7,8 +7,11 @@ file(GLOB	src_stdlib		src/stdlib/*.cpp	)
 file(GLOB	src_utils		src/utils/*.cpp		)
 
 add_definitions(-DENL_LIBRARY)
+set (CMAKE_CXX_STANDARD 17)
 
 add_library(enl SHARED ${src_stdlib} ${src_utils})
+
+target_link_libraries(enl stdc++fs)
 
 install(TARGETS enl DESTINATION lib/)
 

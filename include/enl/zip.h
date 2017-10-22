@@ -54,7 +54,7 @@
 // utilities like gzip or xz.
 
 #define IDENLZIP	(('P' << 24) + ('I' << 16) + ('Z' << 8) + 'E')
-#define ENLZIP_VERSION	1
+#define ENLZIP_VERSION	2
 
 // Archive flags
 // The archived is closed, adding further data and file entry is
@@ -72,7 +72,8 @@ START_PACK
 struct ezip_header {
 	uint32_t reserved4;
 	uint32_t reserved3;
-	uint32_t reserved2;
+	uint16_t nOTPChecksum;
+	uint16_t reserved2;
 	uint32_t nVersion;
 
 	uint32_t iFlags;
@@ -130,7 +131,7 @@ private:
 class enlzip_reader {
 public:
 	enlzip_reader(const char* szFilename);
-
+	
 	uint32_t open(const char* szPath);
 	size_t size(uint32_t pFile);
 	ssize_t read(uint32_t pFile, uint8_t* pDst);
@@ -143,6 +144,7 @@ private:
 	std::ifstream m_file;
 	hash m_hash;
 	std::vector<enlzip_file> m_files;
+	size_t m_iEndOfFile;
 
 	size_t m_nOTPLen, m_nHTableLen;
 	// Offset to HTable from end of file

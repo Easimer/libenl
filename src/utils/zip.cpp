@@ -15,7 +15,9 @@
 */
 
 #include <enl/zip.h>
+#include <enl/checksum.h>
 #include <cstring>
+#include <memory>
 
 #include <iostream>
 
@@ -38,10 +40,11 @@ ssize_t enlzip_writer::write(const char* szFilename, const char* pData, size_t n
 {
 	size_t iPos = m_file.tellp();
 	size_t iNewPos = ((iPos + 511) & -512);
-	std::cout << "Current cur: " << iPos << " new pos: " << iNewPos << std::endl;
 	m_file.seekp(iNewPos);
 	m_file.write(pData, nLength);
-	m_reqs.push_back({m_hash.get_hash(szFilename), iNewPos, nLength, iOwnerUser, iOwnerGroup, nPermissions});
+	uint32_t nHash = m_hash.get_hash(szFilename);
+	m_reqs.push_back({nHash, iNewPos, nLength, iOwnerUser, iOwnerGroup, nPermissions});
+	std::cout << "File with hash " << nHash << " written " << strlen(szFilename) << std::endl;
 	return nLength;
 }
 
@@ -62,15 +65,9 @@ void enlzip_writer::close()
 		hentry.nDataOffset = req.nOffset;
 		hentry.nDataSize = req.nSize;
 		hentry.iFlags = 0;
-#if defined(PLAT_LINUX)
-		hentry.iOwnerUser = 0;
-		hentry.iOwnerGroup = 0;
-		hentry.nPermissions = 0;
-#else
-		hentry.iOwnerUser = 0;
-		hentry.iOwnerGroup = 0;
-		hentry.nPermissions = 0;
-#endif
+		hentry.iOwnerUser = req.iOwnerUser;
+		hentry.iOwnerGroup = req.iOwnerGroup;
+		hentry.nPermissions = req.nPermissions;
 
 		m_file.write((const char*)&hentry, sizeof(ezip_hentry));
 		nHTableLen++;
@@ -80,6 +77,7 @@ void enlzip_writer::close()
 
 	// write otp table
 	nOTPLen = m_hash.get_otp_size();
+	std::cout << "OTP OFF: " << std::dec << m_file.tellp() << std::endl;
 	m_file.write((const char*)m_hash.get_otp(), nOTPLen);
 
 	std::cout << "OTP written (" << nOTPLen << " bytes)" << std::endl;
@@ -88,8 +86,9 @@ void enlzip_writer::close()
 	memset(&hdr, 0, sizeof(hdr));
 	hdr.iID = IDENLZIP;
 	hdr.nHTableLen = nHTableLen;
-	hdr.nOTPLen = nOTPLen;
+	hdr.nOTPLen = 0x100;
 	hdr.nVersion = ENLZIP_VERSION;
+	hdr.nOTPChecksum = m_hash.get_checksum();
 
 	m_file.write((const char*)&hdr, sizeof(hdr));
 
@@ -100,13 +99,20 @@ void enlzip_writer::close()
 
 enlzip_reader::enlzip_reader(const char* szFilename)
 {
+	std::cout << "READER" << std::endl;
 	ezip_header header;
+	size_t iEndOfFile;
 	m_file = std::ifstream(szFilename, std::ios::in | std::ios::binary);
 
 	if(!m_file)
 		throw std::runtime_error("cannot open ezip " + std::string(szFilename));
 
-	m_file.seekg(-sizeof(ezip_header), std::ios::end);
+	m_file.seekg(0, std::ios::end);
+	iEndOfFile = m_file.tellg();
+	m_iEndOfFile = iEndOfFile;
+	std::cout << "Length of archive is " << m_iEndOfFile << std::endl;
+	
+	m_file.seekg(iEndOfFile - sizeof(ezip_header));
 
 	m_file.read((char*)&header, sizeof(ezip_header));
 
@@ -123,22 +129,53 @@ enlzip_reader::enlzip_reader(const char* szFilename)
 	std::cout << "HTable length: " << header.nHTableLen << std::endl;
 	std::cout << "OTP length: " << header.nOTPLen << std::endl;
 
-	m_file.seekg(-sizeof(ezip_header) - header.nOTPLen, std::ios::end);
+	size_t off = iEndOfFile - sizeof(ezip_header) - header.nOTPLen;
+	
+	std::cout << "OTP OFF: " << std::dec << off << std::endl;
+	
+	m_file.seekg(off);
 
 	char otp_buf[header.nOTPLen];
+	memset(otp_buf, 0, header.nOTPLen);
 	m_file.read(otp_buf, header.nOTPLen);
+	std::cout << "Loading OTP" << std::endl;
 	m_hash = hash(header.nOTPLen, (uint8_t*)otp_buf);
+	
+	std::cout << "OTP checksum" << std::endl <<
+			"Header checksum: " << header.nOTPChecksum << std::endl <<
+			"Calculated checksum: " << m_hash.get_checksum() << std::endl;
+	
+	if(m_hash.get_checksum() != header.nOTPChecksum)
+		throw std::runtime_error("bad OTP checksum");
 
 	m_nOTPLen = header.nOTPLen;
 	m_nHTableLen = header.nHTableLen;
 
 	// Offset to HTable from end of file
-	m_iHTableOff = -sizeof(ezip_header) - m_nOTPLen - m_nHTableLen * sizeof(ezip_hentry);
+	m_iHTableOff = iEndOfFile - sizeof(ezip_header) - m_nOTPLen - m_nHTableLen * sizeof(ezip_hentry);
+	
+	m_file.seekg(m_iHTableOff);
+	
+	for(size_t i = 0; i < m_nHTableLen; i++)
+	{
+		ezip_hentry hentry;
+		m_file.read((char*)&hentry, sizeof(hentry));
+		enlzip_file file;
+		file.nHash = hentry.nPathHash;
+		file.nPermissions = hentry.nPermissions;
+		file.iOwnerUser = hentry.iOwnerUser;
+		file.iOwnerGroup = hentry.iOwnerGroup;
+		file.nOffset = hentry.nDataOffset;
+		file.nSize = hentry.nDataSize;
+		
+		m_files.push_back(file);
+	}
 }
 uint32_t enlzip_reader::open(const char* szPath)
 {
 	uint32_t nHash = m_hash.get_hash(szPath);
-	m_file.seekg(m_iHTableOff, std::ios::end);
+	std::cout << "File with hash " << nHash << " is opening " << strlen(szPath) << std::endl;
+	/*m_file.seekg(m_iHTableOff);
 	for(size_t i = 0; i < m_nHTableLen; i++)
 	{
 		ezip_hentry hentry;
@@ -147,29 +184,39 @@ uint32_t enlzip_reader::open(const char* szPath)
 		{
 			return i;
 		}
+	}*/
+	for(size_t i = 0; i < m_files.size(); i++)
+	{
+		if(m_files[i].nHash == nHash)
+			return i;
 	}
 
 	return ~0;
 }
 size_t enlzip_reader::size(uint32_t pFile)
 {
-	if(pFile > m_nHTableLen)
+	/*if(pFile > m_nHTableLen)
 		return 0;
 	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
 	ezip_hentry hentry;
 	m_file.read((char*)&hentry, sizeof(hentry));
-	return hentry.nDataSize;
+	return hentry.nDataSize;*/
+	if(pFile >= m_files.size())
+		return 0;
+	return m_files[pFile].nSize;
 }
 ssize_t enlzip_reader::read(uint32_t pFile, uint8_t* pDst)
 {
 	size_t iDataOff, nDataSize;
 	if(pFile > m_nHTableLen)
 		return 0;
-	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	/*m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
 	ezip_hentry hentry;
 	m_file.read((char*)&hentry, sizeof(hentry));
 	iDataOff = hentry.nDataOffset;
-	nDataSize = hentry.nDataSize;
+	nDataSize = hentry.nDataSize;*/
+	iDataOff = m_files[pFile].nOffset;
+	nDataSize = m_files[pFile].nSize;
 
 	m_file.seekg(iDataOff);
 	m_file.read((char*)pDst, nDataSize);
@@ -178,24 +225,33 @@ ssize_t enlzip_reader::read(uint32_t pFile, uint8_t* pDst)
 
 uint32_t enlzip_reader::owner_user(uint32_t pFile)
 {
-	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	if(pFile >= m_files.size())
+		return 0;
+	return m_files[pFile].iOwnerUser;
+	/*m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
 	ezip_hentry hentry;
 	m_file.read((char*)&hentry, sizeof(hentry));
-	return hentry.iOwnerUser;
+	return hentry.iOwnerUser;*/
 }
 
 uint32_t enlzip_reader::owner_group(uint32_t pFile)
 {
-	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	if(pFile >= m_files.size())
+		return 0;
+	return m_files[pFile].iOwnerGroup;
+	/*m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
 	ezip_hentry hentry;
 	m_file.read((char*)&hentry, sizeof(hentry));
-	return hentry.iOwnerGroup;
+	return hentry.iOwnerGroup;*/
 }
 
 uint32_t enlzip_reader::permissions(uint32_t pFile)
 {
-	m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
+	if(pFile >= m_files.size())
+		return 0;
+	return m_files[pFile].nPermissions;
+	/*m_file.seekg(m_iHTableOff + pFile * sizeof(ezip_hentry), std::ios::end);
 	ezip_hentry hentry;
 	m_file.read((char*)&hentry, sizeof(hentry));
-	return hentry.nPermissions;
+	return hentry.nPermissions;*/
 }

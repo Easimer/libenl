@@ -16,25 +16,10 @@
 
 #pragma once
 
-#include <cstdlib>
-#include <cstdint>
+#include <vector>
+#include <string>
 
-class hash {
-public:
-	hash(size_t nOtpLen = 256);
-	hash(size_t nOtpLen, uint8_t* pOTP);
-	~hash() {}
-
-	uint32_t get_hash(uint8_t* pData, size_t nLength);
-	uint32_t get_hash(const char* szString);
-
-	uint8_t* get_otp() { return m_pOTP; }
-	size_t get_otp_size() { return m_nOTPLen; }
-	uint16_t get_checksum() { return m_nChecksum; }
-
-private:
-	uint8_t m_pOTP[256];
-	size_t m_nOTPLen;
-	uint16_t m_nChecksum;
-};
-
+void fs_create_path(const std::string& path);
+void fs_create_path_to(const std::string& fpath);
+std::vector<std::string> fs_list_files(const std::string& path);
+std::string fs_concat_paths(const std::string& first, const std::string& second);

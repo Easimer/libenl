@@ -15,35 +15,40 @@
 */
 
 #include <enl/hash_otp.h>
+#include <enl/checksum.h>
+#include <iostream>
 #include <cstring>
+
+#include <csignal>
 
 hash::hash(size_t nOtpLen)
 {
-	if(nOtpLen < 0x100)
+	/*if(nOtpLen < 0x100)
 		nOtpLen = 0x100;
-	nOtpLen &= ~3; // pad to 4
-	m_pOTP = new uint8_t[nOtpLen];
-	uint32_t* pOTP = (uint32_t*)m_pOTP;
-	for(size_t i = 0; i < (nOtpLen >> 2); i++)
+	nOtpLen &= ~3; // pad to 4*/
+	nOtpLen = 0x100;
+	for(size_t i = 0; i < 256; i++)
 	{
-		pOTP[i] = rand();
+		m_pOTP[i] = rand();
 	}
 	m_nOTPLen = nOtpLen;
+	uint16_t nChecksum = checksum_ip4(m_pOTP, nOtpLen);
+	std::cout << "Generated OTP table with checksum " << nChecksum << std::endl;
+	m_nChecksum = nChecksum;
 }
 
 hash::hash(size_t nOtpLen, uint8_t* pOTP)
 {
-	if(nOtpLen < 0x100)
+	/*if(nOtpLen < 0x100)
 		nOtpLen = 0x100;
-	nOtpLen &= ~3; // pad to 4
-	m_pOTP = new uint8_t[nOtpLen];
+	nOtpLen &= ~3; // pad to 4*/
+	nOtpLen = 0x100;
+	std::cout << "Copying " << nOtpLen << " bytes from " << pOTP << " to " << m_pOTP << std::endl;
 	memcpy(m_pOTP, pOTP, nOtpLen);
 	m_nOTPLen = nOtpLen;
-}
-
-hash::~hash()
-{
-	delete m_pOTP;
+	uint16_t nChecksum = checksum_ip4(pOTP, nOtpLen);
+	std::cout << "Loaded OTP table with checksum " << nChecksum << std::endl;
+	m_nChecksum = nChecksum;
 }
 
 uint32_t hash::get_hash(uint8_t *pData, size_t nLength)
@@ -53,7 +58,9 @@ uint32_t hash::get_hash(uint8_t *pData, size_t nLength)
 	for(size_t i = 0; i < nLength; i++)
 	{
 		iOTPIndex = pData[i];
-		nHash += pData[i] ^ m_pOTP[iOTPIndex];
+		uint8_t nData = iOTPIndex ^ m_pOTP[iOTPIndex];
+		std::cout << std::hex << (unsigned)nData << ' ' << std::endl;
+		nHash += nData;
 		nHash += nHash << 10;
 		nHash ^= nHash >> 6;
 	}
@@ -65,6 +72,7 @@ uint32_t hash::get_hash(uint8_t *pData, size_t nLength)
 
 uint32_t hash::get_hash(const char* szString)
 {
-	return get_hash((uint8_t*)szString, strlen(szString)+1);
+	std::cout << "Hashing string \"" << szString << '\"' << std::endl;
+	return get_hash((uint8_t*)szString, strlen(szString));
 }
 
