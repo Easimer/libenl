@@ -41,6 +41,8 @@ public:
 	ENL_EXPORT size_t Read(unsigned char* pBuf, size_t nBufSiz);
 	ENL_EXPORT size_t Write(const unsigned char* pBuf, size_t nBufSiz);
 
+	ENL_EXPORT size_t available() const;
+
 protected:
 	socket_t OpenSocket(std::string& addr, unsigned short iPort);
 

@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 #elif defined(PLAT_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -181,4 +182,15 @@ socket_t CTCPClient::OpenSocket(std::string & addr, unsigned short iPort)
 #else
 	return 0;
 #endif
+}
+
+size_t CTCPClient::available() const
+{
+	size_t available = 0;
+#if defined(PLAT_LINUX)
+	ioctl(m_iSocket, FIONREAD, &available);
+#elif defined(PLAT_WINDOWS)
+	ioctlsocket(m_iSocket, FIONREAD, &available);
+#endif
+	return available;
 }
