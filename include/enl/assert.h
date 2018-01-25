@@ -29,7 +29,7 @@
 
 #if defined(PLAT_WINDOWS) // Win32
 
-#include <Windows.h>
+#include <windows.h>
 #include <cwchar>
 
 #define ASSERT(expr) \
