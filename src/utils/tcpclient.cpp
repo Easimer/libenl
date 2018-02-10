@@ -190,7 +190,7 @@ size_t CTCPClient::available() const
 #if defined(PLAT_LINUX)
 	ioctl(m_iSocket, FIONREAD, &available);
 #elif defined(PLAT_WINDOWS)
-	ioctlsocket(m_iSocket, FIONREAD, &available);
+	ioctlsocket(m_iSocket, FIONREAD, (u_long*)&available);
 #endif
 	return available;
 }

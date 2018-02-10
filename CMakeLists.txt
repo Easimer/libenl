@@ -11,9 +11,8 @@ set (CMAKE_CXX_STANDARD 17)
 
 add_library(enl SHARED ${src_stdlib} ${src_utils})
 
-target_link_libraries(enl stdc++fs)
-
-install(TARGETS enl DESTINATION lib/)
+install(TARGETS enl DESTINATION bin/)
 
 file(GLOB include_headers include/enl/*.h)
-install(FILES ${include_headers} DESTINATION include/enl/)
+# don't install headers in engine branch
+# install(FILES ${include_headers} DESTINATION include/enl/)
