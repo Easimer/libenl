@@ -37,6 +37,8 @@ public:
 		m_pFrontBuffer = new T[nSize];
 		m_bForceCopy = true;
 		m_bClosed = false;
+		m_nBackBufferCount = 0;
+		m_nFrontBufferCount = 0;
 	}
 	~cmdbuf()
 	{
