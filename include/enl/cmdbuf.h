@@ -17,6 +17,7 @@
 
 #include <mutex>
 #include <atomic>
+#include <algorithm>
 
 /*
 	A thread-safe command buffer
@@ -114,22 +115,25 @@ public:
 private:
 	void sort()
 	{
-		#define _BBSORTKEY(i) *((size_t*)&m_pBackBuffer[i])
-		size_t i = 1;
-		while (i < m_nBackBufferCount)
-		{
-			size_t j = i;
-			while (j > 0 && _BBSORTKEY(j - 1) > _BBSORTKEY(j))
-			{
-				T t;
-				memcpy(&t, m_pBackBuffer + j, sizeof(T));
-				memcpy(m_pBackBuffer + j, m_pBackBuffer - 1, sizeof(T));
-				memcpy(m_pBackBuffer + j, m_pBackBuffer + (j - 1), sizeof(T));
-				memcpy(m_pBackBuffer + (j-1), &t, sizeof(T));
-				j--;
-			}
-			i++;
-		}
+		std::sort(m_pBackBuffer, m_pBackBuffer + m_nBackBufferCount, [](T left, T right) {
+			return *((size_t*)&left) < *((size_t*)&right);
+		});
+		//#define _BBSORTKEY(i) *((size_t*)&m_pBackBuffer[i])
+		//size_t i = 1;
+		//while (i < m_nBackBufferCount)
+		//{
+		//	size_t j = i;
+		//	while (j > 0 && _BBSORTKEY(j - 1) > _BBSORTKEY(j))
+		//	{
+		//		T t;
+		//		memcpy(&t, m_pBackBuffer + j, sizeof(T));
+		//		memcpy(m_pBackBuffer + j, m_pBackBuffer - 1, sizeof(T));
+		//		memcpy(m_pBackBuffer + j, m_pBackBuffer + (j - 1), sizeof(T));
+		//		memcpy(m_pBackBuffer + (j-1), &t, sizeof(T));
+		//		j--;
+		//	}
+		//	i++;
+		//}
 	}
 
 	void copy()
