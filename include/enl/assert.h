@@ -46,6 +46,20 @@
 		} \
 	}
 
+#define ASSERT_CUSTOM(expr, msg) \
+	{ \
+		if(!(expr)) \
+		{ \
+			wchar_t errormsg[512]; \
+			swprintf(errormsg, 512, L"Assertion failed: %s\nBreak in debugger?\n\nLine: %u\nFile: %s\nFunction:\n%s\n\n%s", WIDE1(#expr), __LINE__, WFILE, WSIGN, msg); \
+			int nRet = MessageBoxW( NULL, errormsg, L"Engine Error",  MB_YESNOCANCEL | MB_ICONWARNING | MB_DEFBUTTON1); \
+			if(nRet == IDYES) \
+				DebugBreak(); \
+			else if (nRet == IDCANCEL) \
+				exit(1); \
+		} \
+	}
+
 #define ASSERT_ERRORFUNC(expr, errorfunc) \
 	{ \
 		if(!(expr)) \
