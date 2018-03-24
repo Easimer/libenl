@@ -34,17 +34,10 @@ class cmdbuf
 public:
 	cmdbuf()
 	{
-		m_pBackBuffer = new T[nSize];
-		m_pFrontBuffer = new T[nSize];
 		m_bForceCopy = true;
 		m_bClosed = false;
 		m_nBackBufferCount = 0;
 		m_nFrontBufferCount = 0;
-	}
-	~cmdbuf()
-	{
-		delete m_pFrontBuffer;
-		delete m_pBackBuffer;
 	}
 
 	void begin_write()
@@ -168,9 +161,9 @@ private:
 	}
 
 private:
-	T* m_pBackBuffer;
+	T m_pBackBuffer[nSize];
 	size_t m_nBackBufferCount;
-	T* m_pFrontBuffer;
+	T m_pFrontBuffer[nSize];
 	size_t m_nFrontBufferCount;
 	std::mutex m_BackBufferLock; // prevents copying to or from the back buffer; locked by BeginWrite or BeginCopy; opened by EndWrite or EndCopy
 	std::mutex m_FrontBufferLock; // prevents copying to or from the front buffer; locked by BeginRead or BeginCopy; opened by EndRead or EndCopy
