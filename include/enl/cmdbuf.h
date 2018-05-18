@@ -46,7 +46,7 @@ public:
 		//std::cerr << "CMDBUF-W: Back buffer locked" << std::endl;
 		m_nBackBufferCount = 0;
 	}
-	void write(T& cmd)
+	void write(const T& cmd)
 	{
 		if (m_nBackBufferCount == nSize)
 		{

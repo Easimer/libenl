@@ -17,6 +17,7 @@
 #pragma once
 
 #if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
 #define PLAT_WINDOWS
 #endif
 
