@@ -75,6 +75,23 @@
 		} \
 	}
 
+#define ASSERT_WINDOWS(expr) \
+	{ \
+		if(!(expr)) \
+		{ \
+			wchar_t errormsg[1024]; \
+			wchar_t winerr[512]; \
+			int errcode = GetLastError(); \
+            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), winerr, 512, NULL); \
+			swprintf(errormsg, 1024, L"Assertion failed: %s\nWindows error: %s (%d)\nBreak in debugger?\n\nLine: %u\nFile: %s\nFunction:\n%s\n", WIDE1(#expr), winerr, errcode, __LINE__, WFILE, WSIGN); \
+			int nRet = MessageBoxW( NULL, errormsg, L"Engine Error",  MB_YESNOCANCEL | MB_ICONWARNING | MB_DEFBUTTON1); \
+			if(nRet == IDYES) \
+				DebugBreak(); \
+			else if (nRet == IDCANCEL) \
+				exit(1); \
+		} \
+	}
+
 #define ASSERT_SDL2(expr) ASSERT_ERRORFUNC(expr, SDL_GetError)
 #define ASSERT_MIXER(expr) ASSERT_ERRORFUNC(expr, Mix_GetError)
 #define ASSERT_IMAGE(expr) ASSERT_ERRORFUNC(expr, IMG_GetError)
@@ -94,6 +111,7 @@
 #define ASSERT_SDL2(expr) ASSERT_ERRORFUNC(expr, SDL_GetError)
 #define ASSERT_MIXER(expr) ASSERT_ERRORFUNC(expr, Mix_GetError)
 #define ASSERT_IMAGE(expr) ASSERT_ERRORFUNC(expr, IMG_GetError)
+#define ASSERT_WINDOWS(expr)
 
 #else
 
@@ -118,4 +136,5 @@
 #define ASSERT_SDL2(expr)
 #define ASSERT_MIXER(expr)
 #define ASSERT_IMAGE(expr)
+#define ASSERT_WINDOWS(expr)
 #endif
