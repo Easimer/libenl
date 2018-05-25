@@ -112,7 +112,12 @@
 #define ASSERT_MIXER(expr) ASSERT_ERRORFUNC(expr, Mix_GetError)
 #define ASSERT_IMAGE(expr) ASSERT_ERRORFUNC(expr, IMG_GetError)
 #define ASSERT_WINDOWS(expr)
-
+#define ASSERT_CUSTOM(expr, msg) \
+	if(!(expr)) \
+	{ \
+		std::cerr << "Assertion failed: " << msg << std::endl; \
+		assert(expr); \
+	}
 #else
 
 #warning Unknown platform!
