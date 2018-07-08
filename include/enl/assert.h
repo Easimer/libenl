@@ -142,4 +142,5 @@
 #define ASSERT_MIXER(expr)
 #define ASSERT_IMAGE(expr)
 #define ASSERT_WINDOWS(expr)
+#define ASSERT_CUSTOM(expr, msg)
 #endif
